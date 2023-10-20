@@ -19,7 +19,7 @@ EyeLink Developers Kit. Download from [SR-Research support forum](https://www.sr
  > If you use any other linux distribution, download the API files and place
  > libedfapi.so in lib/ and \*.h files in include. Setup.py should be able to
  > work with this.
- 
+
 ### Windows Support
 As of this writing (July 2019), the EyeLink Developers Kit for Windows requires small modifications
 before it will work with this project. Administrator access is required to edit the files
@@ -46,12 +46,12 @@ which comes with the correct version of that file and puts it on the PATH by def
 
 Follow [this sr-support forum post](https://www.sr-support.com/forum/eyelink/programming/56478-edf_data-h-use-uint8-instead-of-byte)
 for updates.
- 
+
 
 Setup
 =====
 
-Run  `pip install git+https://github.com/mortonne/edfread` to compile and install. This will install the
+Run `pip install git+https://github.com/R1chrdson/edfread` to compile and install. This will install the
 python library and a command line script to parse edfs.
 
 Usage
