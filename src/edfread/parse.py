@@ -1,9 +1,12 @@
-from edfread import edf_read
+import argparse
+import json
+import os
+
+import h5py
 import numpy as np
 import pandas as pd
-import h5py
-import os
-import argparse
+
+from edfread import edf_read
 
 
 def read_edf(
@@ -67,33 +70,54 @@ def trials2events(events, messages):
     return events.merge(messages, how="left", on=["trial"])
 
 
-def save_human_understandable(samples, events, messages, path):
+def save_h5(data, path):
     """Save HDF with explicit mapping of string to numbers."""
     f = h5py.File(path, "w")
     try:
-        for name, data in zip(
-            ["samples", "events", "messages"], [samples, events, messages]
-        ):
+        for name, table in data.items():
             fm_group = f.create_group(name)
-            for field in data.columns:
+            for field in table.columns:
                 try:
                     fm_group.create_dataset(
                         field,
-                        data=data[field],
+                        data=table[field],
                         compression="gzip",
                         compression_opts=1,
                     )
                 except TypeError:
                     # Probably a string that can not be saved in hdf.
                     # Map to numbers and save mapping in attrs.
-                    column = data[field].values.astype(str)
+                    column = table[field].values.astype(str)
                     mapping = dict((key, i) for i, key in enumerate(np.unique(column)))
                     fm_group.create_dataset(
                         field, data=np.array([mapping[val] for val in column])
                     )
-                    fm_group.attrs[f"{field}_mapping"] = str(mapping)
+                    fm_group.attrs[f"{field}_mapping"] = json.dumps(mapping)
     finally:
         f.close()
+
+
+def load_h5(path):
+    """Load HDF saved with save_human_understandable function."""
+    data = {}
+
+    with h5py.File(path) as h5_file:
+        for name, table in h5_file.items():
+            table_data = {}
+            for key, value in table.items():
+                table_data[key] = value[:]
+
+            table_df = pd.DataFrame(table_data)
+
+            for field_key, mapping_str in table.attrs.items():
+                field = field_key.split('_')[0]
+                mapping = json.loads(mapping_str)
+                reverse_mapping = {v: k for k, v in mapping.items()}
+                table_df[field] = table_df[field].map(reverse_mapping)
+
+            data[name] = table_df
+
+    return data
 
 
 def convert_edf():
