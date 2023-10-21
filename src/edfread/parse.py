@@ -82,7 +82,6 @@ def save_human_understandable(samples, events, messages, path):
                         data=data[field],
                         compression="gzip",
                         compression_opts=1,
-                        shuffle=True,
                     )
                 except TypeError:
                     # Probably a string that can not be saved in hdf.
@@ -92,7 +91,7 @@ def save_human_understandable(samples, events, messages, path):
                     fm_group.create_dataset(
                         field, data=np.array([mapping[val] for val in column])
                     )
-                    fm_group.attrs[field + "mapping"] = str(mapping)
+                    fm_group.attrs[f"{field}_mapping"] = str(mapping)
     finally:
         f.close()
 
